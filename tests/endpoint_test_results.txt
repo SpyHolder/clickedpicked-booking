@@ -1,0 +1,255 @@
+=== ENDPOINT TESTING REPORT ===
+Timestamp: Thu, Oct 15, 2026 10:20:51 AM
+Base URL: http://127.0.0.1:8000
+================================
+
+GET /rooms
+Description: List all rooms
+HTTP Code: 500
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Laravel</ti
+---
+GET /rooms/1
+Description: Get room detail
+HTTP Code: 500
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Laravel</ti
+---
+GET /rooms/1/packages
+Description: Get room packages
+HTTP Code: 500
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Laravel</ti
+---
+POST /bookings
+Description: Create booking
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+GET /bookings/ABC123
+Description: Get booking by code
+HTTP Code: 500
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Laravel</ti
+---
+POST /bookings/check-availability
+Description: Check slot availability
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /bookings/ABC123/payments
+Description: Create payment for booking
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /payments/1/upload-proof
+Description: Upload payment proof
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/rooms
+Description: Create room (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+PUT /admin/rooms/1
+Description: Update room (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+DELETE /admin/rooms/1
+Description: Delete room (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/rooms/1/packages
+Description: Create package (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+PUT /admin/packages/1
+Description: Update package (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+DELETE /admin/packages/1
+Description: Delete package (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+GET /admin/bookings
+Description: List bookings (Admin)
+HTTP Code: 500
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Laravel</ti
+---
+POST /admin/bookings/ABC123/confirm
+Description: Confirm booking (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/bookings/ABC123/cancel
+Description: Cancel booking (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/bookings/ABC123/complete
+Description: Complete booking (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/payments/1/verify
+Description: Verify payment (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---
+POST /admin/payments/1/reject
+Description: Reject payment (Admin)
+HTTP Code: 419
+Response (first 200 chars): <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Page Expired</title>
+
+        <s
+---

@@ -1,0 +1,192 @@
+erDiagram
+    ROOMS ||--o{ ROOM_IMAGES : memiliki
+    ROOMS ||--o{ ROOM_PACKAGES : memiliki
+    ROOMS ||--o{ BOOKING_DETAILS : dipesan
+    ROOM_PACKAGES ||--o{ BOOKING_DETAILS : digunakan
+
+    BOOKINGS ||--o{ BOOKING_DETAILS : memiliki
+    BOOKINGS ||--o{ PAYMENTS : memiliki
+    ADMINS o|--o{ PAYMENTS : memverifikasi
+
+    BOOKINGS o|--o{ PHOTO_EDIT_REQUESTS : terkait
+    BOOKING_DETAILS o|--o{ PHOTO_EDIT_REQUESTS : terkait_sesi
+    ROOMS ||--o{ PHOTO_EDIT_REQUESTS : asal_studio_qr
+    ADMINS o|--o{ PHOTO_EDIT_REQUESTS : menginput_manual
+    ADMINS o|--o{ PHOTO_EDIT_REQUESTS : memverifikasi
+    ADMINS o|--o{ PHOTO_EDIT_REQUESTS : mengerjakan
+    PHOTO_EDIT_REQUESTS o|--o{ PAYMENTS : dibayar_melalui
+
+    PHOTO_EDIT_REQUESTS ||--o{ EDIT_REQUEST_ITEMS : berisi
+    PHOTO_EDIT_REQUESTS ||--o{ EDITED_PHOTOS : menghasilkan
+    EDIT_REQUEST_ITEMS o|--o{ EDITED_PHOTOS : hasil_dari
+    PHOTO_EDIT_REQUESTS ||--o{ EDIT_STATUS_LOGS : tercatat
+    ADMINS o|--o{ EDIT_STATUS_LOGS : mengubah
+
+    PHOTO_EDIT_REQUESTS ||--o{ PHOTO_DELIVERIES : dikirim_melalui
+    ADMINS o|--o{ PHOTO_DELIVERIES : mengirim
+    PHOTO_DELIVERIES ||--o{ DELIVERY_ITEMS : memuat
+    EDITED_PHOTOS ||--o{ DELIVERY_ITEMS : dikirim
+
+    ADMINS {
+        int id_admin PK
+        varchar nama
+        varchar email
+        varchar password
+        varchar no_hp "format 628xxx"
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    ROOMS {
+        int id_room PK
+        varchar nama_room "nomor/nama studio"
+        varchar jenis_room
+        text deskripsi
+        int kapasitas
+        varchar status
+        datetime updated_at
+    }
+
+    ROOM_IMAGES {
+        int id_image PK
+        int id_room FK
+        varchar image_url
+        varchar keterangan
+    }
+
+    ROOM_PACKAGES {
+        int id_package PK
+        int id_room FK
+        decimal harga
+        varchar tipe_harga
+        int durasi_menit
+        text deskripsi_benefit
+        boolean is_active
+    }
+
+    BOOKINGS {
+        int id_booking PK
+        varchar kode_booking "unik, untuk cek status tanpa login"
+        varchar nama_pelanggan
+        varchar no_hp_pelanggan "format 628xxx"
+        varchar email_pelanggan "opsional"
+        date tanggal_booking
+        varchar status_booking "pending, confirmed, done, cancelled"
+        decimal total_harga
+        datetime created_at
+        datetime updated_at
+    }
+
+    BOOKING_DETAILS {
+        int id_detail PK
+        int id_booking FK
+        int id_room FK
+        int id_package FK
+        date tanggal_sesi
+        time jam_mulai
+        time jam_selesai
+        int jumlah_orang
+        decimal harga
+    }
+
+    PAYMENTS {
+        int id_payment PK
+        int id_booking FK
+        int id_request FK "nullable, untuk bayar edit foto"
+        int verified_by FK "nullable, ke ADMINS"
+        varchar jenis_pembayaran "booking, edit_foto"
+        varchar metode_pembayaran
+        decimal jumlah_bayar
+        date tanggal_bayar
+        varchar status_pembayaran "pending, paid, failed, refunded"
+        varchar bukti_pembayaran
+    }
+
+    PHOTO_EDIT_REQUESTS {
+        int id_request PK
+        varchar kode_request "unik, untuk cek status tanpa login"
+        int id_room FK "studio dari QR / input admin"
+        int id_booking FK "nullable, kosong jika tidak ada booking cocok"
+        int id_detail FK "nullable"
+        varchar sumber "qr, admin"
+        int created_by FK "nullable, terisi jika sumber = admin"
+        int verified_by FK "nullable, ke ADMINS"
+        int handled_by FK "nullable, admin yang mengedit"
+        varchar nama_pelanggan "diisi pelanggan / admin"
+        varchar nomor_wa "format 628xxx"
+        boolean perlu_dicek "tidak ada booking cocok"
+        boolean persetujuan_data
+        datetime persetujuan_at
+        varchar status_edit "menunggu_verifikasi, pending, diproses, selesai, dikirim, ditolak"
+        text alasan_penolakan
+        varchar drive_folder_id
+        text drive_folder_url
+        text catatan
+        datetime deadline
+        datetime created_at
+        datetime verified_at
+        datetime updated_at
+        datetime completed_at
+    }
+
+    EDIT_REQUEST_ITEMS {
+        int id_item PK
+        int id_request FK
+        varchar nama_file "foto mentah yang dipilih"
+        text instruksi_edit
+    }
+
+
+    EDITED_PHOTOS {
+        int id_photo PK
+        int id_request FK
+        int id_item FK "nullable"
+        varchar nama_file
+        varchar drive_file_id
+        text drive_url
+        varchar mime_type
+        bigint ukuran_file
+        datetime uploaded_at
+    }
+
+    EDIT_STATUS_LOGS {
+        int id_log PK
+        int id_request FK
+        int changed_by FK "nullable, ke ADMINS"
+        varchar status_lama
+        varchar status_baru
+        datetime changed_at
+    }
+
+    PHOTO_DELIVERIES {
+        int id_delivery PK
+        int id_request FK
+        int id_admin FK "nullable, pengirim"
+        varchar metode "wa_link, wa_foto"
+        varchar recipient_phone
+        text pesan
+        varchar status_pengiriman "pending, sent, delivered, read, failed"
+        varchar external_message_id
+        int retry_count
+        text error_message
+        text response_api
+        datetime sent_at
+        datetime delivered_at
+        datetime read_at
+    }
+
+    DELIVERY_ITEMS {
+        int id_delivery_item PK
+        int id_delivery FK
+        int id_photo FK
+    }
+
+    SETTINGS {
+        int id_setting PK
+        varchar key "unik, misal: qris_image, wa_template_booking_pending"
+        text value "path gambar atau template teks"
+        varchar tipe "image, text, json"
+        text deskripsi
+        datetime updated_at
+    }
