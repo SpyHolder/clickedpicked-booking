@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('delivery_items', function (Blueprint $table) {
@@ -18,12 +15,11 @@ return new class extends Migration
 
             $table->foreign('id_delivery')->references('id_delivery')->on('photo_deliveries')->cascadeOnDelete();
             $table->foreign('id_photo')->references('id_photo')->on('edited_photos')->restrictOnDelete();
+
+            $table->unique(['id_delivery', 'id_photo']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('delivery_items');

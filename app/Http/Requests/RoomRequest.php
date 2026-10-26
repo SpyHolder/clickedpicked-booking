@@ -1,34 +1,38 @@
 <?php
+
 namespace App\Http\Requests;
+
 use Illuminate\Foundation\Http\FormRequest;
-use App\Enums\RoomStatus;
-use Illuminate\Validation\Rules\Enum;
+
+/**
+ * Validasi studio (admin create/update). Kolom sesuai ERD: nama_room, jenis_room, deskripsi, kapasitas.
+ */
 class RoomRequest extends FormRequest
 {
-    public function authorize():bool
+    public function authorize(): bool
     {
         return true;
     }
-    public function rules():array
+
+    public function rules(): array
     {
-        $rules=[
-            'nama_ruangan'=>'required|string|max:100',
-            'deskripsi'=>'nullable|string',
-            'kapasitas'=>'nullable|integer|min:1',
-            'lokasi'=>'nullable|string|max:200',
+        return [
+            'nama_room' => 'required|string|max:100',
+            'jenis_room' => 'required|string|max:50',
+            'deskripsi' => 'nullable|string',
+            'kapasitas' => 'required|integer|min:1',
         ];
-        if($this->isMethod('put')||$this->isMethod('patch')){
-            $rules['status_ruangan']=['nullable',new Enum(RoomStatus::class)];
-        }
-        return $rules;
     }
-    public function messages():array
+
+    public function messages(): array
     {
-        return[
-            'nama_ruangan.required'=>'Nama ruangan wajib diisi',
-            'nama_ruangan.max'=>'Nama ruangan maksimal 100 karakter',
-            'kapasitas.integer'=>'Kapasitas harus berupa angka',
-            'kapasitas.min'=>'Kapasitas minimal 1 orang',
+        return [
+            'nama_room.required' => 'Nama studio wajib diisi',
+            'nama_room.max' => 'Nama studio maksimal 100 karakter',
+            'jenis_room.required' => 'Jenis studio wajib diisi',
+            'kapasitas.required' => 'Kapasitas wajib diisi',
+            'kapasitas.integer' => 'Kapasitas harus berupa angka',
+            'kapasitas.min' => 'Kapasitas minimal 1 orang',
         ];
     }
 }

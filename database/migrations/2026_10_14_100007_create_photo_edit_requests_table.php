@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('photo_edit_requests', function (Blueprint $table) {
@@ -42,12 +39,13 @@ return new class extends Migration
             $table->foreign('created_by')->references('id_admin')->on('admins')->nullOnDelete();
             $table->foreign('verified_by')->references('id_admin')->on('admins')->nullOnDelete();
             $table->foreign('handled_by')->references('id_admin')->on('admins')->nullOnDelete();
+
+            $table->index(['status_edit', 'created_at']);
+            $table->index('nomor_wa');
+            $table->index('id_booking');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('photo_edit_requests');

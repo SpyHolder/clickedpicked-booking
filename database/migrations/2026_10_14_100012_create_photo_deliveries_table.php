@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('photo_deliveries', function (Blueprint $table) {
@@ -30,12 +27,12 @@ return new class extends Migration
 
             $table->foreign('id_request')->references('id_request')->on('photo_edit_requests')->cascadeOnDelete();
             $table->foreign('id_admin')->references('id_admin')->on('admins')->nullOnDelete();
+
+            $table->index('id_request');
+            $table->index('external_message_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('photo_deliveries');

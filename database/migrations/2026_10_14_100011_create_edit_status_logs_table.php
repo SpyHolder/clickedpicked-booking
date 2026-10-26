@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('edit_status_logs', function (Blueprint $table) {
@@ -21,12 +18,11 @@ return new class extends Migration
 
             $table->foreign('id_request')->references('id_request')->on('photo_edit_requests')->cascadeOnDelete();
             $table->foreign('changed_by')->references('id_admin')->on('admins')->nullOnDelete();
+
+            $table->index(['id_request', 'changed_at']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('edit_status_logs');
