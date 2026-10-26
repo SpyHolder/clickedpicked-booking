@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('settings', function (Blueprint $table) {
@@ -17,13 +14,10 @@ return new class extends Migration
             $table->text('value');
             $table->string('tipe', 20);
             $table->text('deskripsi')->nullable();
-            $table->timestamp('updated_at');
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('settings');

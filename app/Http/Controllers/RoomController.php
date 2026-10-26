@@ -2,201 +2,217 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RoomRequest;
 use App\Http\Requests\PackageRequest;
+use App\Http\Requests\RoomRequest;
 use App\Services\RoomService;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class RoomController extends Controller
 {
     public function __construct(private RoomService $roomService) {}
 
+    // ==================== PUBLIC ====================
+
     /**
-     * PUBLIC: Display list of active rooms for customer
+     * Daftar studio aktif untuk pelanggan.
      */
     public function index(): View
     {
-        $rooms = $this->roomService->getAllRooms();
-        
-        return view('rooms.index', [
-            'rooms' => $rooms
+        return view('studio.index', [
+            'rooms' => $this->roomService->getActiveRooms(),
         ]);
     }
 
     /**
-     * PUBLIC: Display single room detail with packages for customer
+     * Detail studio aktif dengan paket.
      */
-    public function show(int $id): View
+    public function show(int $room): View
     {
-        $room = $this->roomService->getRoomById($id);
-        
-        if (!$room) {
-            abort(404, 'Ruangan tidak ditemukan');
+        $roomModel = $this->roomService->getActiveRoomById($room);
+
+        if (!$roomModel) {
+            abort(404, 'Studio tidak ditemukan');
         }
-        
-        $packages = $this->roomService->getRoomPackages($id);
-        
-        return view('rooms.show', [
-            'room' => $room,
-            'packages' => $packages
+
+        return view('studio.show', [
+            'room' => $roomModel,
         ]);
     }
 
-    /**
-     * PUBLIC: Get room packages (for AJAX)
-     */
-    public function getPackages(int $roomId): JsonResponse
-    {
-        $packages = $this->roomService->getRoomPackages($roomId);
-        
-        return response()->json([
-            'success' => true,
-            'data' => $packages
-        ]);
-    }
+    // ==================== ADMIN ====================
 
     /**
-     * ADMIN: Display room management page
+     * Daftar semua studio (admin, termasuk nonaktif).
      */
     public function adminIndex(): View
     {
-        $rooms = $this->roomService->getAllRooms(includeInactive: true);
-        
-        return view('admin.rooms.index', [
-            'rooms' => $rooms
+        return view('admin.studio.index', [
+            'rooms' => $this->roomService->getAllRoomsAdmin(),
         ]);
     }
 
     /**
-     * ADMIN: Show create room form
+     * Form buat studio baru.
      */
     public function create(): View
     {
-        return view('admin.rooms.create');
+        return view('admin.studio.create');
     }
 
     /**
-     * ADMIN: Store new room
+     * Simpan studio baru.
      */
     public function store(RoomRequest $request): RedirectResponse
     {
-        $room = $this->roomService->createRoom($request->validated());
-        
-        return redirect()
-            ->route('admin.rooms.index')
-            ->with('success', 'Ruangan berhasil dibuat');
+        $this->roomService->createRoom($request->validated());
+
+        return redirect()->route('admin.studio.index')
+            ->with('success', 'Studio berhasil dibuat');
     }
 
     /**
-     * ADMIN: Show edit room form
+     * Form edit studio.
      */
-    public function edit(int $id): View
+    public function edit(int $room): View
     {
-        $room = $this->roomService->getRoomById($id);
-        
-        if (!$room) {
-            abort(404, 'Ruangan tidak ditemukan');
+        $roomModel = $this->roomService->getRoomById($room);
+
+        if (!$roomModel) {
+            abort(404, 'Studio tidak ditemukan');
         }
-        
-        return view('admin.rooms.edit', [
-            'room' => $room
+
+        return view('admin.studio.edit', [
+            'room' => $roomModel,
         ]);
     }
 
     /**
-     * ADMIN: Update room
+     * Update studio.
      */
-    public function update(int $id, RoomRequest $request): RedirectResponse
+    public function update(int $room, RoomRequest $request): RedirectResponse
     {
-        $room = $this->roomService->updateRoom($id, $request->validated());
-        
-        if (!$room) {
-            return redirect()
-                ->route('admin.rooms.index')
-                ->with('error', 'Ruangan tidak ditemukan');
+        $roomModel = $this->roomService->updateRoom($room, $request->validated());
+
+        if (!$roomModel) {
+            return redirect()->route('admin.studio.index')
+                ->with('error', 'Studio tidak ditemukan');
         }
-        
-        return redirect()
-            ->route('admin.rooms.index')
-            ->with('success', 'Ruangan berhasil diperbarui');
+
+        return redirect()->route('admin.studio.index')
+            ->with('success', 'Studio berhasil diperbarui');
     }
 
     /**
-     * ADMIN: Delete room (soft delete by status)
+     * Toggle status studio (aktif ↔ nonaktif). PRD: tanpa hapus.
      */
-    public function destroy(int $id): RedirectResponse
+    public function toggleStatus(int $room): RedirectResponse
     {
-        $deleted = $this->roomService->deleteRoom($id);
-        
-        if (!$deleted) {
-            return redirect()
-                ->route('admin.rooms.index')
-                ->with('error', 'Ruangan tidak ditemukan');
+        $roomModel = $this->roomService->toggleStatus($room);
+
+        if (!$roomModel) {
+            return back()->with('error', 'Studio tidak ditemukan');
         }
-        
-        return redirect()
-            ->route('admin.rooms.index')
-            ->with('success', 'Ruangan berhasil dinonaktifkan');
+
+        $label = $roomModel->status->label();
+        return back()->with('success', "Status studio diubah menjadi {$label}");
     }
 
+    // ── Paket ──
+
     /**
-     * ADMIN: Show room packages management
+     * Daftar paket per studio (admin).
      */
-    public function showPackages(int $roomId): View
+    public function showPackages(int $room): View
     {
-        $room = $this->roomService->getRoomById($roomId);
-        
-        if (!$room) {
-            abort(404, 'Ruangan tidak ditemukan');
+        $roomModel = $this->roomService->getRoomById($room);
+
+        if (!$roomModel) {
+            abort(404, 'Studio tidak ditemukan');
         }
-        
-        $packages = $this->roomService->getRoomPackages($roomId, includeInactive: true);
-        
-        return view('admin.rooms.packages', [
-            'room' => $room,
-            'packages' => $packages
+
+        return view('admin.studio.packages', [
+            'room' => $roomModel,
+            'packages' => $this->roomService->getAllPackages($room),
         ]);
     }
 
     /**
-     * ADMIN: Store new package for room
+     * Buat paket baru.
      */
-    public function storePackage(int $roomId, PackageRequest $request): RedirectResponse
+    public function storePackage(int $room, PackageRequest $request): RedirectResponse
     {
-        $package = $this->roomService->createPackage($roomId, $request->validated());
-        
-        return redirect()
-            ->route('admin.rooms.packages', $roomId)
+        $this->roomService->createPackage($room, $request->validated());
+
+        return redirect()->route('admin.studio.packages', $room)
             ->with('success', 'Paket berhasil dibuat');
     }
 
     /**
-     * ADMIN: Update package
+     * Update paket (termasuk toggle is_active).
      */
-    public function updatePackage(int $packageId, PackageRequest $request): RedirectResponse
+    public function updatePackage(int $room, int $package, PackageRequest $request): RedirectResponse
     {
-        $package = $this->roomService->updatePackage($packageId, $request->validated());
-        
-        if (!$package) {
+        $result = $this->roomService->updatePackage($package, $request->validated());
+
+        if (!$result) {
             return back()->with('error', 'Paket tidak ditemukan');
         }
-        
+
         return back()->with('success', 'Paket berhasil diperbarui');
     }
 
+    // ── Gambar ──
+
     /**
-     * ADMIN: Delete package (soft delete by is_active)
+     * Upload gambar studio.
      */
-    public function destroyPackage(int $packageId): RedirectResponse
+    public function uploadImage(int $room, Request $request): RedirectResponse
     {
-        $deleted = $this->roomService->deletePackage($packageId);
-        
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'keterangan' => 'nullable|string|max:100',
+        ], [
+            'image.required' => 'Gambar wajib dipilih',
+            'image.image' => 'File harus berupa gambar',
+            'image.max' => 'Ukuran gambar maksimal 5MB',
+        ]);
+
+        $path = $request->file('image')->store("studio/{$room}", 'public');
+        $this->roomService->uploadImage($room, $path, $request->input('keterangan'));
+
+        return back()->with('success', 'Gambar berhasil diupload');
+    }
+
+    /**
+     * Hapus gambar studio.
+     */
+    public function deleteImage(int $room, int $image): RedirectResponse
+    {
+        $deleted = $this->roomService->deleteImage($image);
+
         if (!$deleted) {
-            return back()->with('error', 'Paket tidak ditemukan');
+            return back()->with('error', 'Gambar tidak ditemukan');
         }
-        
-        return back()->with('success', 'Paket berhasil dinonaktifkan');
+
+        return back()->with('success', 'Gambar berhasil dihapus');
+    }
+
+    /**
+     * QR code halaman edit foto studio (PRD 8.2 — stub tampilan).
+     */
+    public function showQr(int $room): View
+    {
+        $roomModel = $this->roomService->getRoomById($room);
+
+        if (!$roomModel) {
+            abort(404, 'Studio tidak ditemukan');
+        }
+
+        return view('admin.studio.qr', [
+            'room' => $roomModel,
+        ]);
     }
 }

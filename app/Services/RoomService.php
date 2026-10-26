@@ -1,86 +1,181 @@
 <?php
+
 namespace App\Services;
+
 use App\Models\Room;
+use App\Models\RoomImage;
 use App\Models\RoomPackage;
 use App\Enums\RoomStatus;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
+
 class RoomService
 {
-    public function getAllRooms(int $perPage=15):Paginator
+    /**
+     * Daftar studio aktif untuk pelanggan.
+     */
+    public function getActiveRooms(): Collection
     {
-        return Room::paginate($perPage);
+        return Room::where('status', RoomStatus::AKTIF)
+            ->with('images')
+            ->get();
     }
-    public function getRoomById(int $id):?Room
+
+    /**
+     * Daftar semua studio (admin — termasuk nonaktif).
+     */
+    public function getAllRoomsAdmin(int $perPage = 15): LengthAwarePaginator
     {
-        return Room::with(['images','packages'])->find($id);
+        return Room::with('images')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
-    public function createRoom(array $data):Room
+
+    /**
+     * Detail studio by id. Hanya studio aktif untuk publik.
+     */
+    public function getActiveRoomById(int $id): ?Room
+    {
+        return Room::where('id_room', $id)
+            ->where('status', RoomStatus::AKTIF)
+            ->with(['images', 'packages' => fn ($q) => $q->where('is_active', true)])
+            ->first();
+    }
+
+    /**
+     * Detail studio by id (admin, termasuk nonaktif).
+     */
+    public function getRoomById(int $id): ?Room
+    {
+        return Room::with(['images', 'packages'])->find($id);
+    }
+
+    /**
+     * Buat studio baru. PRD: tidak ada hapus, hanya nonaktif.
+     */
+    public function createRoom(array $data): Room
     {
         return Room::create([
-            'kode_ruangan'=>$this->generateRoomCode(),
-            'nama_ruangan'=>$data['nama_ruangan'],
-            'deskripsi'=>$data['deskripsi']??null,
-            'kapasitas'=>$data['kapasitas']??1,
-            'lokasi'=>$data['lokasi']??null,
-            'status_ruangan'=>RoomStatus::Active,
+            'nama_room' => $data['nama_room'],
+            'jenis_room' => $data['jenis_room'],
+            'deskripsi' => $data['deskripsi'] ?? null,
+            'kapasitas' => $data['kapasitas'],
+            'status' => RoomStatus::AKTIF->value,
         ]);
     }
-    public function updateRoom(int $id,array $data):?Room
+
+    /**
+     * Update studio.
+     */
+    public function updateRoom(int $id, array $data): ?Room
     {
-        $room=Room::find($id);
-        if(!$room)return null;
+        $room = Room::find($id);
+        if (!$room) return null;
+
         $room->update([
-            'nama_ruangan'=>$data['nama_ruangan']??$room->nama_ruangan,
-            'deskripsi'=>$data['deskripsi']??$room->deskripsi,
-            'kapasitas'=>$data['kapasitas']??$room->kapasitas,
-            'lokasi'=>$data['lokasi']??$room->lokasi,
-            'status_ruangan'=>$data['status_ruangan']??$room->status_ruangan,
+            'nama_room' => $data['nama_room'] ?? $room->nama_room,
+            'jenis_room' => $data['jenis_room'] ?? $room->jenis_room,
+            'deskripsi' => $data['deskripsi'] ?? $room->deskripsi,
+            'kapasitas' => $data['kapasitas'] ?? $room->kapasitas,
         ]);
+
         return $room;
     }
-    public function deleteRoom(int $id):bool
+
+    /**
+     * Toggle status studio (aktif ↔ nonaktif). PRD: tidak ada hapus.
+     */
+    public function toggleStatus(int $id): ?Room
     {
-        $room=Room::find($id);
-        if(!$room)return false;
-        return $room->delete();
+        $room = Room::find($id);
+        if (!$room) return null;
+
+        $newStatus = $room->status === RoomStatus::AKTIF
+            ? RoomStatus::NONAKTIF
+            : RoomStatus::AKTIF;
+
+        $room->update(['status' => $newStatus->value]);
+        return $room;
     }
-    public function getRoomPackages(int $roomId):mixed
+
+    // ── Paket ──
+
+    /**
+     * Paket aktif untuk studio tertentu (publik).
+     */
+    public function getActivePackages(int $roomId): Collection
     {
-        return RoomPackage::where('id_room',$roomId)->get();
+        return RoomPackage::where('id_room', $roomId)
+            ->where('is_active', true)
+            ->get();
     }
-    public function createPackage(int $roomId,array $data):RoomPackage
+
+    /**
+     * Semua paket untuk studio (admin).
+     */
+    public function getAllPackages(int $roomId): Collection
+    {
+        return RoomPackage::where('id_room', $roomId)->get();
+    }
+
+    /**
+     * Buat paket baru.
+     */
+    public function createPackage(int $roomId, array $data): RoomPackage
     {
         return RoomPackage::create([
-            'id_room'=>$roomId,
-            'nama_paket'=>$data['nama_paket'],
-            'durasi_jam'=>$data['durasi_jam'],
-            'harga'=>$data['harga'],
-            'inklusi'=>$data['inklusi']??null,
+            'id_room' => $roomId,
+            'harga' => $data['harga'],
+            'tipe_harga' => $data['tipe_harga'],
+            'durasi_menit' => $data['durasi_menit'],
+            'deskripsi_benefit' => $data['deskripsi_benefit'] ?? null,
+            'is_active' => true,
         ]);
     }
-    public function updatePackage(int $packageId,array $data):?RoomPackage
+
+    /**
+     * Update paket. Termasuk toggle is_active.
+     */
+    public function updatePackage(int $packageId, array $data): ?RoomPackage
     {
-        $package=RoomPackage::find($packageId);
-        if(!$package)return null;
+        $package = RoomPackage::find($packageId);
+        if (!$package) return null;
+
         $package->update([
-            'nama_paket'=>$data['nama_paket']??$package->nama_paket,
-            'durasi_jam'=>$data['durasi_jam']??$package->durasi_jam,
-            'harga'=>$data['harga']??$package->harga,
-            'inklusi'=>$data['inklusi']??$package->inklusi,
+            'harga' => $data['harga'] ?? $package->harga,
+            'tipe_harga' => $data['tipe_harga'] ?? $package->tipe_harga,
+            'durasi_menit' => $data['durasi_menit'] ?? $package->durasi_menit,
+            'deskripsi_benefit' => $data['deskripsi_benefit'] ?? $package->deskripsi_benefit,
+            'is_active' => $data['is_active'] ?? $package->is_active,
         ]);
+
         return $package;
     }
-    public function deletePackage(int $packageId):bool
+
+    // ── Gambar studio ──
+
+    /**
+     * Upload gambar studio.
+     */
+    public function uploadImage(int $roomId, string $path, ?string $keterangan = null): RoomImage
     {
-        $package=RoomPackage::find($packageId);
-        if(!$package)return false;
-        return $package->delete();
+        return RoomImage::create([
+            'id_room' => $roomId,
+            'image_url' => $path,
+            'keterangan' => $keterangan,
+        ]);
     }
-    private function generateRoomCode():string
+
+    /**
+     * Hapus gambar studio.
+     */
+    public function deleteImage(int $imageId): bool
     {
-        do{
-            $code='ROOM-'.strtoupper(bin2hex(random_bytes(3)));
-        }while(Room::where('kode_ruangan',$code)->exists());
-        return $code;
+        $image = RoomImage::find($imageId);
+        if (!$image) return false;
+
+        Storage::disk('public')->delete($image->image_url);
+        return $image->delete();
     }
 }

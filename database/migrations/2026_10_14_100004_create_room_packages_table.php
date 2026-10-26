@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('room_packages', function (Blueprint $table) {
@@ -22,12 +19,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_room')->references('id_room')->on('rooms')->cascadeOnDelete();
+            $table->index(['id_room', 'is_active']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('room_packages');
