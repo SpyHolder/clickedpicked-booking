@@ -9,3 +9,22 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+.hero-placeholder { background: linear-gradient(135deg, #e6e2d8 0%, #faf9f5 48%, #d8d1c1 100%); }
+.gallery-placeholder { background: linear-gradient(135deg, #172033 0%, #64748b 46%, #cbbb9e 100%); }
+.room-placeholder { background: linear-gradient(135deg, #334155, #cbbb9e); }
+.room-detail-placeholder { background: linear-gradient(135deg, #172033, #7b2631 55%, #cbbb9e); }
+.field-label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 700; }
+.field-input { width: 100%; min-height: 3rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: #fff; padding: .75rem 1rem; outline: none; }
+.field-input:focus { border-color: #172033; box-shadow: 0 0 0 3px #1720331a; }
+.field-error { margin-top: .35rem; font-size: .875rem; color: #b91c1c; }
+.admin-link { display: block; border-radius: .75rem; padding: .75rem 1rem; font-size: .875rem; font-weight: 700; color: #475569; }
+.admin-link:hover { background: #f3f0e8; color: #172033; }
+.stat-card { border: 1px solid #e2e8f0; border-radius: 1rem; background: #fff; padding: 1.25rem; }
+.stat-card span { display: block; color: #64748b; font-size: .875rem; }
+.stat-card strong { display: block; margin-top: .5rem; font-size: 2rem; }
+
+.hero-placeholder { background: linear-gradient(135deg, #e6e2d8 0%, #faf9f5 48%, #d8d1c1 100%); }
+.gallery-placeholder { background: linear-gradient(135deg, #172033 0%, #64748b 46%, #cbbb9e 100%); }
+.room-placeholder { background: linear-gradient(135deg, #334155, #cbbb9e); }
+.room-detail-placeholder { background: linear-gradient(135deg, #172033, #7b2631 55%, #cbbb9e); }

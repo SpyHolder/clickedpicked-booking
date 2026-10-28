@@ -1,28 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard') - Admin Clicked Studio</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-    <nav>
-        <span>Admin Clicked Studio</span>
-        <form method="POST" action="{{ route('admin.logout') }}" style="display:inline">
-            @csrf
-            <button type="submit">Logout</button>
-        </form>
-    </nav>
-    <main>
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-error">{{ session('error') }}</div>
-        @endif
-
-        @yield('content')
-    </main>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>@yield('title', 'Admin') - Clicked Picked</title>@vite(['resources/css/app.css','resources/js/app.js'])</head>
+<body class="min-h-screen bg-[#f8f7f2] text-[#172033]"><header class="border-b border-slate-200 bg-white"><div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-5 sm:px-8"><a href="{{ route('admin.dashboard') }}" class="font-black text-[#163b71]">Clicked Picked <span class="font-serif italic">Studios</span></a><form method="POST" action="{{ route('admin.logout') }}">@csrf<button class="rounded-lg bg-black px-4 py-2 text-sm font-bold text-white">Keluar</button></form></div></header><div class="mx-auto flex max-w-7xl gap-8 px-5 py-6 sm:px-8"><aside class="hidden w-56 shrink-0 space-y-1 lg:block"><a class="admin-link" href="{{ route('admin.dashboard') }}">Dashboard</a><a class="admin-link" href="{{ route('admin.studio.index') }}">Studio & Paket</a><a class="admin-link" href="{{ route('admin.booking.index') }}">Booking</a></aside><main class="min-w-0 flex-1">@foreach(['success','error','info'] as $type) @if(session($type))<div class="mb-5 rounded-lg p-4 text-sm {{ $type === 'success' ? 'bg-emerald-50 text-emerald-700' : ($type === 'error' ? 'bg-red-50 text-red-700' : 'bg-sky-50 text-sky-700') }}">{{ session($type) }}</div>@endif @endforeach @yield('content')</main></div></body></html>

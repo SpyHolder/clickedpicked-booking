@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 @section('title', 'Edit Studio')
 @section('content')
-<h1>Edit Studio</h1>
-{{-- TODO: implementasi form edit studio --}}
+<div class="max-w-2xl"><a href="{{ route('admin.studio.index') }}" class="text-sm text-slate-500">← Kembali</a><h1 class="mt-5 text-3xl font-black">Edit Studio</h1><form method="POST" action="{{ route('admin.studio.update', $room->id_room) }}" class="mt-7 space-y-5 rounded-2xl border border-slate-200 bg-white p-6">@csrf @method('PUT')<div><label class="field-label">Nama studio</label><input class="field-input" name="nama_room" value="{{ old('nama_room', $room->nama_room) }}" required></div><div><label class="field-label">Jenis studio</label><input class="field-input" name="jenis_room" value="{{ old('jenis_room', $room->jenis_room) }}" required></div><div><label class="field-label">Kapasitas</label><input class="field-input" type="number" name="kapasitas" value="{{ old('kapasitas', $room->kapasitas) }}" min="1" required></div><div><label class="field-label">Deskripsi</label><textarea class="field-input" name="deskripsi" rows="4">{{ old('deskripsi', $room->deskripsi) }}</textarea></div><button class="rounded-lg bg-black px-5 py-3 font-bold text-white">Simpan perubahan</button></form></div>
 @endsection

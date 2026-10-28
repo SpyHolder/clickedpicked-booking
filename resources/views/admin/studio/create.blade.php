@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 @section('title', 'Tambah Studio')
 @section('content')
-<h1>Tambah Studio Baru</h1>
-{{-- TODO: implementasi form tambah studio --}}
+<div class="max-w-2xl"><a href="{{ route('admin.studio.index') }}" class="text-sm text-slate-500">← Kembali</a><h1 class="mt-5 text-3xl font-black">Tambah Studio</h1><form method="POST" action="{{ route('admin.studio.store') }}" class="mt-7 space-y-5 rounded-2xl border border-slate-200 bg-white p-6">@csrf<div><label class="field-label">Nama studio</label><input class="field-input" name="nama_room" value="{{ old('nama_room') }}" required></div><div><label class="field-label">Jenis studio</label><input class="field-input" name="jenis_room" value="{{ old('jenis_room') }}" required></div><div><label class="field-label">Kapasitas</label><input class="field-input" type="number" name="kapasitas" value="{{ old('kapasitas') }}" min="1" required></div><div><label class="field-label">Deskripsi</label><textarea class="field-input" name="deskripsi" rows="4">{{ old('deskripsi') }}</textarea></div><button class="rounded-lg bg-black px-5 py-3 font-bold text-white">Simpan studio</button></form></div>
 @endsection

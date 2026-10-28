@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 @section('title', 'Dashboard')
 @section('content')
-<h1>Dashboard Admin</h1>
-{{-- TODO: implementasi dashboard admin --}}
+<div class="flex items-end justify-between"><div><p class="text-sm text-slate-500">Ringkasan operasional</p><h1 class="text-3xl font-black">Dashboard</h1></div><a href="{{ route('admin.studio.create') }}" class="rounded-lg bg-black px-4 py-3 text-sm font-bold text-white">Tambah studio</a></div><div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><div class="stat-card"><span>Studio aktif</span><strong>-</strong></div><div class="stat-card"><span>Booking</span><strong>-</strong></div><div class="stat-card"><span>Perlu verifikasi</span><strong>-</strong></div></div><div class="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><h2 class="text-xl font-black">Menu cepat</h2><div class="mt-5 flex flex-wrap gap-3"><a class="rounded-lg bg-[#cbbb9e] px-4 py-3 text-sm font-bold" href="{{ route('admin.studio.index') }}">Kelola studio</a><a class="rounded-lg bg-[#cbbb9e] px-4 py-3 text-sm font-bold" href="{{ route('admin.booking.index') }}">Lihat booking</a></div></div>
 @endsection
