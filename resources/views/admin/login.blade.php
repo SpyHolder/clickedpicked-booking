@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('title', 'Login Admin')
 @section('content')
-<h1>Login Admin</h1>
-{{-- TODO: implementasi form login admin --}}
+<section class="mx-auto max-w-md px-5 py-16"><div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"><h1 class="text-3xl font-black">Login Admin</h1><p class="mt-2 text-slate-500">Kelola studio dan booking pelanggan.</p>@if(session('error'))<div class="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ session('error') }}</div>@endif<form method="POST" action="{{ route('admin.login.process') }}" class="mt-7 space-y-5">@csrf<div><label class="field-label">Email</label><input class="field-input" type="email" name="email" value="{{ old('email') }}" required>@error('email')<p class="field-error">{{ $message }}</p>@enderror</div><div><label class="field-label">Password</label><input class="field-input" type="password" name="password" required>@error('password')<p class="field-error">{{ $message }}</p>@enderror</div><button class="w-full rounded-xl bg-black px-5 py-4 font-bold text-white">Masuk</button></form></div></section>
 @endsection

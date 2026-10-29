@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('title', 'Status Booking')
 @section('content')
-<h1>Status Booking</h1>
-{{-- TODO: implementasi halaman status booking --}}
+<section class="mx-auto max-w-2xl px-5 py-16 sm:px-8"><div class="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10"><div class="flex flex-wrap items-start justify-between gap-4"><div><p class="text-sm text-slate-500">Kode booking</p><h1 class="mt-1 text-2xl font-black">{{ $booking->kode_booking }}</h1></div><span class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-800">{{ $booking->status_booking->label() }}</span></div><div class="mt-8 space-y-4 rounded-xl bg-[#f3f0e8] p-5"><div class="flex justify-between gap-4"><span class="text-slate-500">Nama</span><strong>{{ $booking->nama_pelanggan }}</strong></div><div class="flex justify-between gap-4"><span class="text-slate-500">Tanggal</span><strong>{{ $booking->tanggal_booking?->translatedFormat('d M Y') }}</strong></div><div class="flex justify-between gap-4"><span class="text-slate-500">Total</span><strong>Rp {{ number_format($booking->total_harga, 0, ',', '.') }}</strong></div></div><p class="mt-7 text-sm text-slate-500">Status pembayaran akan diperbarui setelah admin memeriksa bukti pembayaran.</p></div></section>
 @endsection

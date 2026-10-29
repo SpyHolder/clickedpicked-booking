@@ -1,6 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Studio Foto')
+@section('title', 'Pilih Lokasi')
 @section('content')
-<h1>Daftar Studio</h1>
-{{-- TODO: implementasi tampilan daftar studio --}}
+<section class="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16"><div class="mx-auto max-w-3xl text-center"><h1 class="text-4xl font-black sm:text-5xl">Pilih Lokasi</h1><select class="mt-7 h-14 w-full rounded-xl border border-slate-400 bg-transparent px-5 text-left text-lg"><option>Jl. Merdeka</option></select></div><div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">@forelse($rooms as $room)<article class="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm"><div class="room-placeholder h-52">@if($room->images->first()->image_url ?? false)<img src="{{ $room->images->first()->image_url }}" alt="{{ $room->nama_room }}" class="h-full w-full object-cover">@endif</div><div class="p-5"><h2 class="text-center text-xl font-black uppercase">{{ $room->nama_room }}</h2><div class="mt-5 flex justify-between text-sm text-slate-500"><span>Harga</span><span>Max Person</span></div><div class="mt-2 flex justify-between font-bold"><span>Mulai dari</span><span>{{ $room->kapasitas }} Orang</span></div><a href="{{ route('studio.show', $room->id_room) }}" class="mt-5 block rounded-lg bg-black px-4 py-3 text-center text-sm font-bold text-white">Lihat Studio</a></div></article>@empty<div class="col-span-full rounded-xl bg-white p-8 text-center text-slate-500">Belum ada studio aktif.</div>@endforelse</div></section>
 @endsection
