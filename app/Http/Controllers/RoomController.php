@@ -211,8 +211,13 @@ class RoomController extends Controller
             abort(404, 'Studio tidak ditemukan');
         }
 
+        $editUrl = route('edit-foto.form', ['room' => $roomModel->id_room]);
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data='.urlencode($editUrl);
+
         return view('admin.studio.qr', [
             'room' => $roomModel,
+            'editUrl' => $editUrl,
+            'qrUrl' => $qrUrl,
         ]);
     }
 }

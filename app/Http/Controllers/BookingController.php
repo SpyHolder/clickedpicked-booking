@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
+use App\Enums\EditStatus;
+use App\Enums\RequestSource;
 use App\Http\Requests\BookingStep1Request;
 use App\Http\Requests\BookingStep2Request;
 use App\Services\BookingService;
 use App\Services\RoomService;
+use App\Models\EditRequestItem;
+use App\Models\PhotoEditRequest;
+use App\Utils\PhoneNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -18,6 +24,81 @@ class BookingController extends Controller
         private BookingService $bookingService,
         private RoomService $roomService,
     ) {}
+
+    // ==================== PUBLIC: Edit foto ====================
+
+    public function showEditPhotoForm(int $room): View
+    {
+        $roomModel = $this->roomService->getActiveRoomById($room);
+        abort_unless($roomModel, 404, 'Studio tidak ditemukan');
+
+        return view('edit-foto.form', ['room' => $roomModel]);
+    }
+
+    public function storeEditPhotoRequest(Request $request, int $room): RedirectResponse
+    {
+        $roomModel = $this->roomService->getActiveRoomById($room);
+        abort_unless($roomModel, 404, 'Studio tidak ditemukan');
+
+        $data = $request->validate([
+            'nama' => ['required', 'string', 'max:100'],
+            'nomor_wa' => ['required', 'string', 'max:30'],
+            'catatan' => ['nullable', 'string', 'max:5000'],
+            'persetujuan_data' => ['accepted'],
+            'foto' => ['required', 'array', 'min:1'],
+            'foto.*.nama_file' => ['required', 'string', 'max:255'],
+            'foto.*.instruksi_edit' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'foto.required' => 'Tambahkan minimal satu foto untuk diedit.',
+            'foto.*.nama_file.required' => 'Nama file foto wajib diisi.',
+        ]);
+
+        if (!PhoneNormalizer::isValid($data['nomor_wa'])) {
+            return back()->withInput()->withErrors(['nomor_wa' => 'Nomor WhatsApp tidak valid.']);
+        }
+
+        do {
+            $kode = 'EDIT-'.strtoupper(substr(bin2hex(random_bytes(5)), 0, 8));
+        } while (PhotoEditRequest::where('kode_request', $kode)->exists());
+
+        $photoRequest = PhotoEditRequest::create([
+            'kode_request' => $kode,
+            'id_room' => $roomModel->id_room,
+            'sumber' => RequestSource::QR,
+            'nama_pelanggan' => $data['nama'],
+            'nomor_wa' => PhoneNormalizer::normalize($data['nomor_wa']),
+            'persetujuan_data' => true,
+            'persetujuan_at' => now(),
+            'status_edit' => EditStatus::MENUNGGU_VERIFIKASI,
+            'catatan' => $data['catatan'] ?? null,
+        ]);
+
+        foreach ($data['foto'] as $item) {
+            $photoRequest->items()->create($item);
+        }
+
+        return redirect()->route('edit-foto.status', $kode)->with('success', 'Request edit foto berhasil dikirim.');
+    }
+
+    public function showEditPhotoStatus(string $kode): View
+    {
+        $photoRequest = PhotoEditRequest::with(['room', 'items', 'editedPhotos'])
+            ->where('kode_request', strtoupper(trim($kode)))
+            ->firstOrFail();
+
+        return view('edit-foto.status', ['request' => $photoRequest]);
+    }
+
+    public function downloadEditedPhoto(string $kode, int $photo)
+    {
+        $photoRequest = PhotoEditRequest::where('kode_request', strtoupper(trim($kode)))->firstOrFail();
+        $editedPhoto = $photoRequest->editedPhotos()->findOrFail($photo);
+        $path = $editedPhoto->drive_url;
+
+        abort_unless($path && Storage::disk('private')->exists($path), 404, 'File tidak ditemukan');
+
+        return Storage::disk('private')->download($path, $editedPhoto->nama_file);
+    }
 
     // ==================== PUBLIC: Wizard ====================
 
@@ -197,6 +278,73 @@ class BookingController extends Controller
         }
 
         return back()->with('error', 'Format kode tidak dikenali. Gunakan kode BK-xxx atau ED-xxx.');
+    }
+
+    // ==================== ADMIN: Edit foto ====================
+
+    public function editPhotoIndex(Request $request): View
+    {
+        $status = $request->query('status');
+        $query = \App\Models\PhotoEditRequest::with('room')->latest();
+        if ($status && EditStatus::tryFrom($status)) {
+            $query->where('status_edit', $status);
+        }
+
+        return view('admin.edit-foto.index', [
+            'requests' => $query->get(),
+            'currentStatus' => $status,
+        ]);
+    }
+
+    public function editPhotoShow(int $request): View
+    {
+        $photoRequest = PhotoEditRequest::with(['room', 'items', 'editedPhotos', 'statusLogs.admin'])->findOrFail($request);
+
+        return view('admin.edit-foto.show', ['request' => $photoRequest]);
+    }
+
+    public function updateEditPhotoStatus(int $request, Request $httpRequest): RedirectResponse
+    {
+        $photoRequest = PhotoEditRequest::findOrFail($request);
+        $target = EditStatus::tryFrom($httpRequest->input('status'));
+        if (!$target || !$photoRequest->status_edit->canTransitionTo($target)) {
+            return back()->with('error', 'Perubahan status tidak valid.');
+        }
+
+        $old = $photoRequest->status_edit->value;
+        $photoRequest->status_edit = $target;
+        $photoRequest->handled_by = auth('admin')->id();
+        if ($target === EditStatus::SELESAI) $photoRequest->completed_at = now();
+        $photoRequest->save();
+        $photoRequest->statusLogs()->create([
+            'changed_by' => auth('admin')->id(),
+            'status_lama' => $old,
+            'status_baru' => $target->value,
+            'changed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Status request berhasil diperbarui.');
+    }
+
+    public function uploadEditedPhoto(int $request, Request $httpRequest): RedirectResponse
+    {
+        $photoRequest = PhotoEditRequest::findOrFail($request);
+        $data = $httpRequest->validate([
+            'foto' => ['required', 'file', 'image', 'max:10240'],
+            'id_item' => ['nullable', 'integer'],
+        ]);
+        $file = $data['foto'];
+        $path = $file->store('edited-photos', 'private');
+        $photoRequest->editedPhotos()->create([
+            'id_item' => $data['id_item'] ?? null,
+            'nama_file' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'ukuran_file' => $file->getSize(),
+            'drive_url' => $path,
+            'uploaded_at' => now(),
+        ]);
+
+        return back()->with('success', 'Hasil edit berhasil diunggah.');
     }
 
     // ==================== ADMIN ====================

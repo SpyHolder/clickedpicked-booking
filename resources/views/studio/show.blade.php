@@ -1,5 +1,16 @@
 @extends('layouts.app')
 @section('title', $room->nama_room)
 @section('content')
-<section class="mx-auto max-w-5xl px-5 py-10 sm:px-8"><a href="{{ route('studio.index') }}" class="text-sm text-slate-500">← Kembali pilih studio</a><div class="mt-8 grid gap-8 md:grid-cols-[1.15fr_.85fr]"><div><div class="room-detail-placeholder flex min-h-[360px] items-end rounded-[1.5rem] p-7"><h1 class="text-4xl font-black uppercase text-white drop-shadow">{{ $room->nama_room }}</h1></div><p class="mt-6 leading-7 text-slate-600">{{ $room->deskripsi ?: 'Studio nyaman untuk mengabadikan momen bersama orang-orang terdekat.' }}</p></div><div class="rounded-[1.5rem] border border-slate-200 bg-white p-6"><h2 class="text-2xl font-black">Paket layanan</h2><div class="mt-6 space-y-3">@forelse($room->packages->where('is_active', true) as $package)<div class="rounded-xl bg-[#f3f0e8] p-4" data-package-id="{{ $package->id_package }}" data-package-name="{{ $package->tipe_harga }} - Rp {{ number_format($package->harga, 0, ',', '.') }}"><div class="flex justify-between gap-4 font-bold"><span>{{ $package->tipe_harga }}</span><span>Rp {{ number_format($package->harga, 0, ',', '.') }}</span></div><p class="mt-1 text-sm text-slate-500">{{ $package->durasi_menit }} menit</p></div>@empty<p class="text-slate-500">Paket belum tersedia.</p>@endforelse</div><a href="{{ route('booking.wizard') }}" class="mt-7 block rounded-xl bg-black px-5 py-4 text-center font-bold text-white">Pesan Sekarang</a></div></div></section>
+<section class="user-page mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+    <a href="{{ route('studio.index') }}" class="back-link">← Kembali ke lokasi</a>
+    @php($images = $room->images)
+    <div class="mt-8 grid gap-10 lg:grid-cols-[1.1fr_.9fr]">
+        <div>
+            <div class="studio-feature room-detail-placeholder">@if($images->first()?->image_url)<img src="{{ str_starts_with($images->first()->image_url, 'http') ? $images->first()->image_url : asset('storage/'.$images->first()->image_url) }}" alt="{{ $room->nama_room }}" class="h-full w-full object-cover">@endif</div>
+            <div class="mt-4 grid grid-cols-3 gap-3">@foreach($images->take(3) as $index => $image)<div class="studio-thumb"><img src="{{ str_starts_with($image->image_url, 'http') ? $image->image_url : asset('storage/'.$image->image_url) }}" alt="{{ $room->nama_room }} {{ $index + 1 }}" class="h-full w-full object-cover"><span>[0{{ $index + 1 }}]</span></div>@endforeach</div>
+            <h1 class="mt-8 text-4xl font-black uppercase">{{ $room->nama_room }}</h1><p class="mt-4 leading-7 text-slate-600">{{ $room->deskripsi ?: 'Studio nyaman untuk mengabadikan momen bersama orang-orang terdekat.' }}</p>
+        </div>
+        <div class="studio-panel"><p class="eyebrow">Paket layanan</p><h2 class="mt-2 text-3xl font-black">Reservasi studio</h2><div class="mt-7 space-y-3">@forelse($room->packages->where('is_active', true) as $package)<div class="package-row" data-package-id="{{ $package->id_package }}" data-package-name="{{ $package->tipe_harga }} - Rp {{ number_format($package->harga, 0, ',', '.') }}"><div><strong>{{ $package->tipe_harga }}</strong><p class="text-sm text-slate-500">{{ $package->durasi_menit }} menit</p></div><strong>Rp {{ number_format($package->harga, 0, ',', '.') }}</strong></div>@empty<p class="text-slate-500">Paket belum tersedia.</p>@endforelse</div><a href="{{ route('booking.wizard') }}" class="user-button mt-8 block text-center">Pesan Sekarang</a></div>
+    </div>
+</section>
 @endsection
