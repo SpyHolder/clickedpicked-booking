@@ -35,10 +35,11 @@ Route::post('/check-status', [BookingController::class, 'processCheckStatus'])->
 // Payment re-upload bukti (Keputusan #2: payment lama → failed, buat baru)
 Route::post('/booking/{kode}/payment/reupload', [PaymentController::class, 'reuploadProof'])->name('booking.payment.reupload');
 
-// Edit foto dari QR (PRD 8.1 — stub, implementasi di BE-3)
-// Route::get('/edit-foto/{room}', ...)->name('edit-foto.form');
-// Route::post('/edit-foto/{room}', ...)->name('edit-foto.store');
-// Route::get('/edit-foto/status/{kode}', ...)->name('edit-foto.status');
+// Edit foto dari QR (form awal; proses request akan dilanjutkan)
+Route::get('/edit-foto/{room}', [BookingController::class, 'showEditPhotoForm'])->name('edit-foto.form');
+Route::post('/edit-foto/{room}', [BookingController::class, 'storeEditPhotoRequest'])->name('edit-foto.store');
+Route::get('/edit-foto/status/{kode}', [BookingController::class, 'showEditPhotoStatus'])->name('edit-foto.status');
+Route::get('/edit-foto/status/{kode}/download/{photo}', [BookingController::class, 'downloadEditedPhoto'])->name('edit-foto.download');
 
 // Webhook WhatsApp (PRD 8.1 — stub, implementasi di BE-4)
 // Route::post('/webhook/whatsapp', ...)->name('webhook.whatsapp');
@@ -87,13 +88,11 @@ Route::middleware(['auth:admin', 'admin.active'])->prefix('admin')->name('admin.
     Route::get('/payment/{payment}/proof', [PaymentController::class, 'showProof'])->name('payment.proof');
     Route::patch('/payment/{payment}/verify', [PaymentController::class, 'verify'])->name('payment.verify');
 
-    // Edit foto admin routes — stub, implementasi di BE-3/4
-    // Route::get('/edit-foto', ...)->name('edit-foto.index');
-    // Route::get('/edit-foto/create', ...)->name('edit-foto.create');
-    // Route::post('/edit-foto', ...)->name('edit-foto.store');
-    // Route::get('/edit-foto/{request}', ...)->name('edit-foto.show');
-    // Route::patch('/edit-foto/{request}', ...)->name('edit-foto.update');
-    // etc.
+    // Edit foto admin
+    Route::get('/edit-foto', [BookingController::class, 'editPhotoIndex'])->name('edit-foto.index');
+    Route::get('/edit-foto/{request}', [BookingController::class, 'editPhotoShow'])->name('edit-foto.show');
+    Route::patch('/edit-foto/{request}/status', [BookingController::class, 'updateEditPhotoStatus'])->name('edit-foto.status.update');
+    Route::post('/edit-foto/{request}/photos', [BookingController::class, 'uploadEditedPhoto'])->name('edit-foto.photos.store');
 
     // Admin management — stub, implementasi di BE-5
     // Route::get('/users', ...)->name('users.index');

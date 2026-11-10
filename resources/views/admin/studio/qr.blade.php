@@ -9,13 +9,12 @@
     </div>
 
     <div class="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <div class="mx-auto flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500">
-            QR code akan tersedia setelah fitur edit foto diaktifkan.
+        <img src="{{ $qrUrl }}" alt="QR Code {{ $room->nama_room }}" class="mx-auto h-64 w-64 rounded-lg">
+        <p class="mt-4 text-sm text-gray-500">Scan QR ini untuk membuka form request edit foto.</p>
+        <div class="mt-4 break-all rounded-lg bg-gray-50 p-3 text-left text-sm text-gray-700">
+            <span class="font-medium">URL:</span> {{ $editUrl }}
         </div>
-        <p class="mt-4 text-sm text-gray-500">Bagikan halaman ini kepada pelanggan untuk akses edit foto studio.</p>
-        <div class="mt-4 rounded-lg bg-gray-50 p-3 text-left text-sm text-gray-700">
-            <span class="font-medium">Studio:</span> {{ $room->nama_room }}
-        </div>
+        <a href="{{ $qrUrl }}" target="_blank" rel="noreferrer" class="mt-5 inline-block rounded-lg bg-black px-4 py-2 text-sm font-bold text-white">Buka QR ukuran penuh</a>
     </div>
 </div>
 @endsection
