@@ -57,7 +57,7 @@ class PaymentController extends Controller
     /**
      * Tampilkan bukti bayar dari disk privat (PRD 7.2).
      */
-    public function showProof(int $payment): Response
+    public function showProof(int $payment): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         $paymentModel = $this->paymentService->getPaymentById($payment);
         $fullPath = $paymentModel ? $this->paymentService->getProofPath($paymentModel) : null;
@@ -67,18 +67,23 @@ class PaymentController extends Controller
         }
 
         return response()->file($fullPath, [
-            'Content-Type' => mime_content_type($fullPath),
+            'Content-Type' => mime_content_type($fullPath) ?: 'image/jpeg',
             'Content-Disposition' => 'inline',
         ]);
     }
 
     /**
-     * Verifikasi pembayaran (PRD 7.2).
+     * Verifikasi atau tolak pembayaran (PRD 7.2).
      */
-    public function verify(int $payment): RedirectResponse
+    public function verify(int $payment, Request $request): RedirectResponse
     {
         $adminId = auth('admin')->id();
-        $result = $this->paymentService->verifyPayment($payment, $adminId);
+
+        if ($request->input('action') === 'reject') {
+            $result = $this->paymentService->rejectPayment($payment, $adminId);
+        } else {
+            $result = $this->paymentService->verifyPayment($payment, $adminId);
+        }
 
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }

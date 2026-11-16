@@ -47,10 +47,18 @@ class RoomController extends Controller
     /**
      * Daftar semua studio (admin, termasuk nonaktif).
      */
-    public function adminIndex(): View
+    public function adminIndex(Request $request): View
     {
+        $allRooms = $this->roomService->getAllRoomsAdmin();
+        $batuLimaRooms = $allRooms->filter(fn ($r) => $r->cabang === 'batu_lima' || str_contains(strtolower((string) $r->cabang), 'batu'))->values();
+        $merdekaRooms = $allRooms->filter(fn ($r) => $r->cabang === 'jalan_merdeka' || str_contains(strtolower((string) $r->cabang), 'merdeka'))->values();
+        $activeTab = $request->query('tab', 'batu_lima');
+
         return view('admin.studio.index', [
-            'rooms' => $this->roomService->getAllRoomsAdmin(),
+            'rooms' => $allRooms,
+            'batuLimaRooms' => $batuLimaRooms,
+            'merdekaRooms' => $merdekaRooms,
+            'activeTab' => in_array($activeTab, ['batu_lima', 'jalan_merdeka'], true) ? $activeTab : 'batu_lima',
         ]);
     }
 
@@ -67,9 +75,10 @@ class RoomController extends Controller
      */
     public function store(RoomRequest $request): RedirectResponse
     {
-        $this->roomService->createRoom($request->validated());
+        $validated = $request->validated();
+        $this->roomService->createRoom($validated);
 
-        return redirect()->route('admin.studio.index')
+        return redirect()->route('admin.studio.index', ['tab' => $validated['cabang'] ?? 'batu_lima'])
             ->with('success', 'Studio berhasil dibuat');
     }
 
@@ -94,14 +103,15 @@ class RoomController extends Controller
      */
     public function update(int $room, RoomRequest $request): RedirectResponse
     {
-        $roomModel = $this->roomService->updateRoom($room, $request->validated());
+        $validated = $request->validated();
+        $roomModel = $this->roomService->updateRoom($room, $validated);
 
         if (!$roomModel) {
             return redirect()->route('admin.studio.index')
                 ->with('error', 'Studio tidak ditemukan');
         }
 
-        return redirect()->route('admin.studio.index')
+        return redirect()->route('admin.studio.index', ['tab' => $validated['cabang'] ?? 'batu_lima'])
             ->with('success', 'Studio berhasil diperbarui');
     }
 
@@ -211,13 +221,8 @@ class RoomController extends Controller
             abort(404, 'Studio tidak ditemukan');
         }
 
-        $editUrl = route('edit-foto.form', ['room' => $roomModel->id_room]);
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data='.urlencode($editUrl);
-
         return view('admin.studio.qr', [
             'room' => $roomModel,
-            'editUrl' => $editUrl,
-            'qrUrl' => $qrUrl,
         ]);
     }
 }

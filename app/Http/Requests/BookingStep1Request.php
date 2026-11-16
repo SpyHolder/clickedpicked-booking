@@ -2,12 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Room;
 use App\Utils\PhoneNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Validasi langkah 1 booking wizard: data diri, studio, paket.
- * PRD 10: nama wajib max 100, no HP valid & dinormalisasi, email opsional, studio aktif, paket milik studio.
+ * Khusus Photo Booth tidak bisa di-booking online (hanya Room Studio).
  */
 class BookingStep1Request extends FormRequest
 {
@@ -35,7 +36,12 @@ class BookingStep1Request extends FormRequest
                 }
             }],
             'email_pelanggan' => 'nullable|email|max:100',
-            'id_room' => 'required|exists:rooms,id_room',
+            'id_room' => ['required', 'exists:rooms,id_room', function ($attribute, $value, $fail) {
+                $room = Room::find($value);
+                if ($room && $room->isPhotoBooth()) {
+                    $fail('Khusus Photo Booth tidak dapat di-booking online. Sistem booking hanya berlaku untuk Room Photo Studio.');
+                }
+            }],
             'id_package' => 'required|exists:room_packages,id_package',
         ];
     }
