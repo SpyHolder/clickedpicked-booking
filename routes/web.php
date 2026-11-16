@@ -1,10 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminFrameController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PhotoEditController;
 
 // ==================== PUBLIC ROUTES (Customer) ====================
 
@@ -35,13 +37,11 @@ Route::post('/check-status', [BookingController::class, 'processCheckStatus'])->
 // Payment re-upload bukti (Keputusan #2: payment lama → failed, buat baru)
 Route::post('/booking/{kode}/payment/reupload', [PaymentController::class, 'reuploadProof'])->name('booking.payment.reupload');
 
-// Edit foto dari QR (PRD 8.1 — stub, implementasi di BE-3)
-// Route::get('/edit-foto/{room}', ...)->name('edit-foto.form');
-// Route::post('/edit-foto/{room}', ...)->name('edit-foto.store');
-// Route::get('/edit-foto/status/{kode}', ...)->name('edit-foto.status');
-
-// Webhook WhatsApp (PRD 8.1 — stub, implementasi di BE-4)
-// Route::post('/webhook/whatsapp', ...)->name('webhook.whatsapp');
+// Edit foto dari QR (PRD 8.1)
+Route::get('/edit-foto/sukses/{kode}', [PhotoEditController::class, 'showSuccess'])->name('edit-foto.success');
+Route::get('/edit-foto/status/{kode}', [PhotoEditController::class, 'showPublicStatus'])->name('edit-foto.status');
+Route::get('/edit-foto/{room}', [PhotoEditController::class, 'showPublicForm'])->whereNumber('room')->name('edit-foto.form');
+Route::post('/edit-foto/{room}', [PhotoEditController::class, 'storePublicRequest'])->whereNumber('room')->name('edit-foto.store');
 
 // ==================== ADMIN AUTH ====================
 
@@ -53,7 +53,7 @@ Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.log
 
 Route::middleware(['auth:admin', 'admin.active'])->prefix('admin')->name('admin.')->group(function () {
 
-    // Dashboard (PRD 8.2 — stub, implementasi di BE-5)
+    // Dashboard
     Route::get('/', function () {
         return view('admin.dashboard');
     })->name('dashboard');
@@ -78,6 +78,13 @@ Route::middleware(['auth:admin', 'admin.active'])->prefix('admin')->name('admin.
     // QR studio (PRD 8.2)
     Route::get('/studio/{room}/qr', [RoomController::class, 'showQr'])->name('studio.qr');
 
+    // Katalog Frame (untuk Photo Studio Room 2 & Room 3 Batu Lima)
+    Route::get('/frames', [AdminFrameController::class, 'index'])->name('frames.index');
+    Route::post('/frames', [AdminFrameController::class, 'store'])->name('frames.store');
+    Route::put('/frames/{frame}', [AdminFrameController::class, 'update'])->whereNumber('frame')->name('frames.update');
+    Route::post('/frames/{frame}/toggle', [AdminFrameController::class, 'toggle'])->whereNumber('frame')->name('frames.toggle');
+    Route::delete('/frames/{frame}', [AdminFrameController::class, 'destroy'])->whereNumber('frame')->name('frames.destroy');
+
     // Booking management (PRD 8.2)
     Route::get('/booking', [BookingController::class, 'adminIndex'])->name('booking.index');
     Route::get('/booking/{booking}', [BookingController::class, 'adminShow'])->name('booking.show');
@@ -87,15 +94,20 @@ Route::middleware(['auth:admin', 'admin.active'])->prefix('admin')->name('admin.
     Route::get('/payment/{payment}/proof', [PaymentController::class, 'showProof'])->name('payment.proof');
     Route::patch('/payment/{payment}/verify', [PaymentController::class, 'verify'])->name('payment.verify');
 
-    // Edit foto admin routes — stub, implementasi di BE-3/4
-    // Route::get('/edit-foto', ...)->name('edit-foto.index');
-    // Route::get('/edit-foto/create', ...)->name('edit-foto.create');
-    // Route::post('/edit-foto', ...)->name('edit-foto.store');
-    // Route::get('/edit-foto/{request}', ...)->name('edit-foto.show');
-    // Route::patch('/edit-foto/{request}', ...)->name('edit-foto.update');
-    // etc.
-
-    // Admin management — stub, implementasi di BE-5
-    // Route::get('/users', ...)->name('users.index');
-    // Route::get('/settings', ...)->name('settings.index');
+    // Edit foto admin routes (PRD 8.2 — BE-3 & BE-4)
+    Route::get('/edit-foto', [PhotoEditController::class, 'adminIndex'])->name('edit-foto.index');
+    Route::get('/edit-foto/create', [PhotoEditController::class, 'adminCreate'])->name('edit-foto.create');
+    Route::get('/edit-foto/lookup-booking', [PhotoEditController::class, 'lookupBooking'])->name('edit-foto.lookup-booking');
+    Route::post('/edit-foto', [PhotoEditController::class, 'adminStore'])->name('edit-foto.store');
+    Route::get('/edit-foto/{editRequest}', [PhotoEditController::class, 'adminShow'])->whereNumber('editRequest')->name('edit-foto.show');
+    Route::patch('/edit-foto/{editRequest}', [PhotoEditController::class, 'adminUpdateData'])->whereNumber('editRequest')->name('edit-foto.update');
+    Route::post('/edit-foto/{editRequest}/accept', [PhotoEditController::class, 'accept'])->whereNumber('editRequest')->name('edit-foto.accept');
+    Route::post('/edit-foto/{editRequest}/reject', [PhotoEditController::class, 'reject'])->whereNumber('editRequest')->name('edit-foto.reject');
+    Route::post('/edit-foto/{editRequest}/claim', [PhotoEditController::class, 'claim'])->whereNumber('editRequest')->name('edit-foto.claim');
+    Route::post('/edit-foto/{editRequest}/upload', [PhotoEditController::class, 'uploadPhotos'])->whereNumber('editRequest')->name('edit-foto.upload');
+    Route::delete('/edit-foto/{editRequest}/photos/{photo}', [PhotoEditController::class, 'deletePhoto'])->whereNumber(['editRequest', 'photo'])->name('edit-foto.photo.destroy');
+    Route::post('/edit-foto/{editRequest}/drive-link', [PhotoEditController::class, 'updateDriveLink'])->whereNumber('editRequest')->name('edit-foto.drive-link');
+    Route::post('/edit-foto/{editRequest}/complete', [PhotoEditController::class, 'complete'])->whereNumber('editRequest')->name('edit-foto.complete');
+    Route::post('/edit-foto/{editRequest}/send-wa', [PhotoEditController::class, 'sendWhatsApp'])->whereNumber('editRequest')->name('edit-foto.send-wa');
+    Route::post('/edit-foto/{editRequest}/reopen', [PhotoEditController::class, 'reopen'])->whereNumber('editRequest')->name('edit-foto.reopen');
 });

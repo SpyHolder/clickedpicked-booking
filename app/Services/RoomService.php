@@ -13,23 +13,34 @@ use Illuminate\Support\Facades\Storage;
 class RoomService
 {
     /**
-     * Daftar studio aktif untuk pelanggan.
+     * Daftar semua ruangan aktif untuk katalog pelanggan.
      */
     public function getActiveRooms(): Collection
     {
         return Room::where('status', RoomStatus::AKTIF)
-            ->with('images')
+            ->with(['images', 'packages' => fn ($q) => $q->where('is_active', true)])
             ->get();
+    }
+
+    /**
+     * Daftar Room Studio yang dapat di-booking secara online (mengecualikan Photo Booth).
+     */
+    public function getBookableRooms(): Collection
+    {
+        return $this->getActiveRooms()
+            ->filter(fn (Room $room) => $room->isBookableStudio())
+            ->values();
     }
 
     /**
      * Daftar semua studio (admin — termasuk nonaktif).
      */
-    public function getAllRoomsAdmin(int $perPage = 15): LengthAwarePaginator
+    public function getAllRoomsAdmin(): Collection
     {
-        return Room::with('images')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        return Room::with(['images', 'packages'])
+            ->orderBy('cabang')
+            ->orderBy('nama_room')
+            ->get();
     }
 
     /**
@@ -58,6 +69,7 @@ class RoomService
     {
         return Room::create([
             'nama_room' => $data['nama_room'],
+            'cabang' => $data['cabang'] ?? 'batu_lima',
             'jenis_room' => $data['jenis_room'],
             'deskripsi' => $data['deskripsi'] ?? null,
             'kapasitas' => $data['kapasitas'],
@@ -75,6 +87,7 @@ class RoomService
 
         $room->update([
             'nama_room' => $data['nama_room'] ?? $room->nama_room,
+            'cabang' => $data['cabang'] ?? $room->cabang,
             'jenis_room' => $data['jenis_room'] ?? $room->jenis_room,
             'deskripsi' => $data['deskripsi'] ?? $room->deskripsi,
             'kapasitas' => $data['kapasitas'] ?? $room->kapasitas,
@@ -146,8 +159,8 @@ class RoomService
             'harga' => $data['harga'] ?? $package->harga,
             'tipe_harga' => $data['tipe_harga'] ?? $package->tipe_harga,
             'durasi_menit' => $data['durasi_menit'] ?? $package->durasi_menit,
-            'deskripsi_benefit' => $data['deskripsi_benefit'] ?? $package->deskripsi_benefit,
-            'is_active' => $data['is_active'] ?? $package->is_active,
+            'deskripsi_benefit' => array_key_exists('deskripsi_benefit', $data) ? $data['deskripsi_benefit'] : $package->deskripsi_benefit,
+            'is_active' => array_key_exists('is_active', $data) ? (bool) $data['is_active'] : $package->is_active,
         ]);
 
         return $package;

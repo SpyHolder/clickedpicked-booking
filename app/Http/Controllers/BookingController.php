@@ -27,7 +27,7 @@ class BookingController extends Controller
     public function showWizard(): View
     {
         return view('booking.wizard', [
-            'rooms' => $this->roomService->getActiveRooms(),
+            'rooms' => $this->roomService->getBookableRooms(),
         ]);
     }
 
